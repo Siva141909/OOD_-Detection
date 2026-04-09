@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Self-Supervised Learning for Out-of-Distribution Detection in Medical Imaging: A Comparative Study of JEPA, MAE, and Supervised Learning">
+  <meta name="keywords" content="Out-of-Distribution Detection, Self-Supervised Learning, Medical Imaging, Chest X-ray, JEPA, MAE, Vision Transformer">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSL for Medical OOD Detection</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans:ital,wght@0,400;0,700;1,400&family=Castoro&display=swap" rel="stylesheet">
+
+  <!-- Bulma CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Academic Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+  <style>
+    /* ─── Typography ─────────────────────────────────────────── */
+    body {
+      font-family: 'Noto Sans', sans-serif;
+    }
+    .title, .subtitle, h1, h2, h3, h4 {
+      font-family: 'Google Sans', sans-serif;
+    }
+
+    /* ─── Hero ────────────────────────────────────────────────── */
+    .hero-title {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #1a1a2e;
+    }
+    @media (min-width: 768px) {
+      .hero-title { font-size: 2.6rem; }
+    }
+
+    /* ─── Authors ─────────────────────────────────────────────── */
+    .author-block {
+      margin: 0 0.5rem;
+    }
+    .author-block a {
+      color: #3273dc;
+      font-weight: 500;
+    }
+
+    /* ─── Buttons ─────────────────────────────────────────────── */
+    .publication-links .button {
+      border-radius: 6px;
+      font-weight: 500;
+      margin: 0.25rem;
+    }
+
+    /* ─── Section headers ─────────────────────────────────────── */
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      border-bottom: 3px solid #3273dc;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ─── Abstract ───────────────────────────────────────────── */
+    .abstract-text {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: #333;
+      text-align: justify;
+    }
+
+    /* ─── Results table ──────────────────────────────────────── */
+    .results-table {
+      font-size: 0.92rem;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .results-table th {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 0.6rem 1rem;
+      text-align: center;
+    }
+    .results-table td {
+      padding: 0.5rem 1rem;
+      text-align: center;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    .results-table tr:hover td {
+      background: #f5f8ff;
+    }
+    .results-table .best {
+      font-weight: 700;
+      color: #2e7d32;
+    }
+
+    /* ─── Figure captions ────────────────────────────────────── */
+    .figure-caption {
+      font-size: 0.88rem;
+      color: #555;
+      text-align: center;
+      margin-top: 0.75rem;
+      line-height: 1.5;
+    }
+
+    /* ─── Key finding cards ──────────────────────────────────── */
+    .finding-card {
+      border-left: 4px solid #3273dc;
+      background: #f5f8ff;
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .finding-card .icon-wrap {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .finding-card h4 {
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 0.4rem;
+    }
+    .finding-card p {
+      font-size: 0.95rem;
+      color: #444;
+      line-height: 1.6;
+    }
+
+    /* ─── BibTeX ─────────────────────────────────────────────── */
+    .bibtex-box {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────── */
+    footer {
+      background: #1a1a2e;
+      color: #aaa;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+    }
+    footer a { color: #7eb3ff; }
+
+    /* ─── Teaser / hero image ────────────────────────────────── */
+    .teaser-img {
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+
+    /* ─── 3-column image gallery ─────────────────────────────── */
+    .gallery-img {
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      width: 100%;
+    }
+
+    /* ─── Stat badges ────────────────────────────────────────── */
+    .stat-badge {
+      display: inline-block;
+      background: #3273dc;
+      color: #fff;
+      border-radius: 20px;
+      padding: 0.25rem 0.85rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin: 0.2rem;
+    }
+
+    /* ─── Method icon strip ─────────────────────────────────── */
+    .method-pill {
+      display: inline-block;
+      border: 2px solid;
+      border-radius: 20px;
+      padding: 0.2rem 0.9rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin: 0.25rem;
+    }
+    .jepa   { border-color: #e53935; color: #e53935; }
+    .mae    { border-color: #1e88e5; color: #1e88e5; }
+    .sup    { border-color: #43a047; color: #43a047; }
+
+    /* ─── Section separator ──────────────────────────────────── */
+    .custom-sep {
+      height: 3px;
+      background: linear-gradient(90deg, #3273dc 0%, #00d1b2 100%);
+      border: none;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO / TITLE
+═══════════════════════════════════════════════════════════════ -->
+<section class="hero" style="background: #fff; padding-top: 3.5rem; padding-bottom: 3rem; border-bottom: 1px solid #e8e8e8;">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+
+          <!-- Title -->
+          <h1 class="hero-title mb-3" style="color:#1a1a2e; font-family:'Castoro', serif; font-size:2.4rem; font-weight:400; line-height:1.3;">
+            Self-Supervised Learning for Out-of-Distribution Detection in Medical Imaging: A Comparative Study of JEPA, MAE, and Supervised Learning
+          </h1>
+
+          <!-- Authors -->
+          <div class="is-size-5 publication-authors mb-2">
+            <span class="author-block"><a href="#">Nikhileswara Rao Sulake</a><sup>*</sup>,</span>
+            <span class="author-block"><a href="#">Likith Vinay Kumar Busam</a><sup>*</sup>,</span>
+            <span class="author-block"><a href="#">Siva Teja Reddy Annapureddy</a><sup>*</sup>,</span>
+            <span class="author-block"><a href="#">Harsha Allapati</a><sup>*</sup></span>
+          </div>
+          <p style="color:#888; font-size:0.9rem; margin-bottom:1.5rem;"><sup>*</sup> Equal contribution</p>
+
+          <!-- Buttons -->
+          <div class="publication-links">
+            <a href="https://github.com/Nikhil-Rao20/JEPA-Med-OOD" target="_blank" class="button is-dark is-rounded">
+              <span class="icon"><i class="fab fa-github"></i></span>
+              <span>Code</span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="custom-sep">
+
+<!-- ═══════════════════════════════════════════════════════════
+     TEASER / ARCHITECTURE
+═══════════════════════════════════════════════════════════════ -->
+<section class="section" style="background:#f9fbff; padding-top:3rem; padding-bottom:2rem;">
+  <div class="container is-max-desktop">
+    <div class="has-text-centered">
+      <img src="Mini_project/paper_paragraph2_required_images/figures/architecture.jpeg"
+           alt="Architecture overview"
+           class="teaser-img"
+           style="max-width:100%;">
+      <p class="figure-caption mt-3" style="max-width:800px; margin:0.75rem auto 0;">
+        <b>System Architecture.</b> A shared ViT-Small encoder backbone is pretrained with JEPA, MAE,
+        and supervised objectives on in-distribution chest X-rays, then evaluated via linear probing,
+        OOD detection with energy and Mahalanobis scores, and robustness analysis under corruption shifts.
+      </p>
+    </div>
+  </div>
+</section>
+
+<hr class="custom-sep">
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABSTRACT
+═══════════════════════════════════════════════════════════════ -->
+<section class="section" id="abstract">
+  <div class="container is-max-desktop">
+    <h2 class="section-title">Abstract</h2>
+    <div class="content">
+      <p class="abstract-text">
+        Out-of-distribution (OOD) detection is a critical capability for the safe deployment of machine
+        learning models in medical imaging, where systems inevitably encounter data from diverse sources
+        that differ from the training distribution. This study presents a comprehensive comparative
+        analysis of three representation learning paradigms&mdash;<b>Joint Embedding Predictive Architecture
+        (JEPA)</b>, <b>Masked Autoencoder (MAE)</b>, and <b>supervised learning</b>&mdash;for chest
+        X-ray out-of-distribution detection.
+      </p>
+      <p class="abstract-text mt-4">
+        Using the TB Chest Radiography Database as in-distribution data and the Montgomery and Shenzhen
+        tuberculosis datasets as out-of-distribution test sets, we evaluate OOD detection performance,
+        cross-dataset generalization, and robustness to common image corruptions. Our experimental results
+        demonstrate that <b>self-supervised methods significantly outperform supervised learning on
+        energy-based OOD detection</b>, achieving 77&ndash;87% AUROC compared to 58&ndash;61% for
+        supervised approaches. Furthermore, <b>MAE exhibits exceptional robustness to contrast
+        perturbations</b>, maintaining 98.3% classification AUC under severe corruption where JEPA and
+        supervised methods degrade to 67&ndash;76%. Mahalanobis distance-based detection achieves
+        near-perfect performance (95&ndash;99% AUROC) across all methods, suggesting that
+        distribution-aware scoring can compensate for representation differences.
+      </p>
+      <!-- Keyword badges -->
+      <div class="mt-4">
+        <span class="stat-badge">OOD Detection</span>
+        <span class="stat-badge">Self-Supervised Learning</span>
+        <span class="stat-badge">Medical Imaging</span>
+        <span class="stat-badge">Chest X-ray</span>
+        <span class="stat-badge">JEPA</span>
+        <span class="stat-badge">MAE</span>
+        <span class="stat-badge">Vision Transformer</span>
+        <span class="stat-badge">Tuberculosis</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="custom-sep">
+
+<!-- ═══════════════════════════════════════════════════════════
+     KEY FINDINGS
+═══════════════════════════════════════════════════════════════ -->
+<section class="section" style="background:#f0f4ff;" id="findings">
+  <div class="container is-max-desktop">
+    <h2 class="section-title">Key Findings</h2>
+    <div class="columns is-multiline">
+
+      <div class="column is-half">
+        <div class="finding-card">
+          <div class="icon-wrap">🎯</div>
+          <h4>Self-supervised methods outperform supervised for energy-based OOD</h4>
+          <p>JEPA and MAE achieve <b>77&ndash;87% AUROC</b> on energy-based OOD detection, compared to only
+             <b>58&ndash;61%</b> for supervised learning. The supervised model's FPR@95 reaches 93.1% on
+             Shenzhen—nearly all OOD samples pass undetected.</p>
+        </div>
+      </div>
+
+      <div class="column is-half">
+        <div class="finding-card" style="border-left-color:#00d1b2;">
+          <div class="icon-wrap">🛡️</div>
+          <h4>MAE is remarkably robust to contrast perturbations</h4>
+          <p>Under <b>severe contrast corruption (severity 5)</b>, MAE maintains <b>98.3% AUC</b> while
+             JEPA and supervised learning degrade to <b>67&ndash;76%</b>. This is directly attributable
+             to MAE's pixel-reconstruction objective.</p>
+        </div>
+      </div>
+
+      <div class="column is-half">
+        <div class="finding-card" style="border-left-color:#9c27b0;">
+          <div class="icon-wrap">📐</div>
+          <h4>Mahalanobis distance rescues supervised representations</h4>
+          <p>Replacing energy scoring with Mahalanobis distance boosts <b>all methods to 95&ndash;99%
+             AUROC</b>. Supervised learning even achieves <b>99.7% AUROC with 0% FPR@95</b> on Shenzhen—
+             distribution-aware scoring can compensate for representation weaknesses.</p>
+        </div>
+      </div>
+
+      <div class="column is-half">
+        <div class="finding-card" style="border-left-color:#ff9800;">
+          <div class="icon-wrap">🔄</div>
+          <h4>MAE generalises best across hospital domains</h4>
+          <p>Cross-dataset classification shows MAE outperforms JEPA and supervised learning by
+             <b>10&ndash;26 percentage points</b> when applied to OOD hospital sources, suggesting
+             reconstruction pretraining encodes transferable anatomical features.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="custom-sep">
+
+<!-- ═══════════════════════════════════════════════════════════
+     RESULTS
+═══════════════════════════════════════════════════════════════ -->
+<section class="section" id="results">
+  <div class="container is-max-desktop">
+    <h2 class="section-title">Experimental Results</h2>
+
+    <!-- ── In-Distribution Classification ────────────────────── -->
+    <h3 class="title is-4 mt-5 mb-3" style="color:#1a1a2e;">In-Distribution Classification</h3>
+    <p class="mb-4" style="color:#555;">All methods achieve strong in-distribution classification on the TB
+    Chest Radiography Database (n&nbsp;=&nbsp;840 validation samples).</p>
+    <div class="table-container">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>AUROC</th>
+            <th>Accuracy</th>
+            <th>ECE ↓</th>
+            <th>NLL ↓</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>JEPA</b></td>
+            <td>0.939</td>
+            <td>0.917</td>
+            <td>0.029</td>
+            <td>0.206</td>
+          </tr>
+          <tr>
+            <td><b>MAE</b></td>
+            <td>0.993</td>
+            <td>0.971</td>
+            <td>0.013</td>
+            <td>0.085</td>
+          </tr>
+          <tr>
+            <td><b>Supervised</b></td>
+            <td class="best">0.996</td>
+            <td class="best">0.980</td>
+            <td class="best">0.007</td>
+            <td class="best">0.064</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Energy-Based OOD ───────────────────────────────────── -->
+    <h3 class="title is-4 mt-6 mb-3" style="color:#1a1a2e;">OOD Detection — Energy Score</h3>
+    <p class="mb-4" style="color:#555;">Self-supervised methods substantially outperform supervised learning,
+    especially on the Shenzhen dataset.</p>
+    <div class="table-container">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th rowspan="2">Method</th>
+            <th colspan="2">Montgomery</th>
+            <th colspan="2">Shenzhen</th>
+          </tr>
+          <tr>
+            <th>AUROC</th>
+            <th>FPR@95 ↓</th>
+            <th>AUROC</th>
+            <th>FPR@95 ↓</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>JEPA</b></td>
+            <td class="best">0.771</td>
+            <td class="best">0.540</td>
+            <td>0.718</td>
+            <td>0.633</td>
+          </tr>
+          <tr>
+            <td><b>MAE</b></td>
+            <td>0.769</td>
+            <td>0.577</td>
+            <td class="best">0.866</td>
+            <td class="best">0.358</td>
+          </tr>
+          <tr>
+            <td><b>Supervised</b></td>
+            <td>0.607</td>
+            <td>0.814</td>
+            <td>0.582</td>
+            <td>0.931</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Mahalanobis OOD ────────────────────────────────────── -->
+    <h3 class="title is-4 mt-6 mb-3" style="color:#1a1a2e;">OOD Detection — Mahalanobis Distance</h3>
+    <p class="mb-4" style="color:#555;">Distribution-aware scoring achieves excellent performance across all
+    methods (≥95% AUROC), compensating for representation differences.</p>
+    <div class="table-container">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th rowspan="2">Method</th>
+            <th colspan="2">Montgomery</th>
+            <th colspan="2">Shenzhen</th>
+          </tr>
+          <tr>
+            <th>AUROC</th>
+            <th>FPR@95 ↓</th>
+            <th>AUROC</th>
+            <th>FPR@95 ↓</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>JEPA</b></td>
+            <td>0.956</td>
+            <td>0.186</td>
+            <td>0.985</td>
+            <td>0.077</td>
+          </tr>
+          <tr>
+            <td><b>MAE</b></td>
+            <td class="best">0.994</td>
+            <td>0.030</td>
+            <td>0.984</td>
+            <td>0.085</td>
+          </tr>
+          <tr>
+            <td><b>Supervised</b></td>
+            <td>0.991</td>
+            <td class="best">0.024</td>
+            <td class="best">0.997</td>
+            <td class="best">0.000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Robustness ─────────────────────────────────────────── -->
+    <h3 class="title is-4 mt-6 mb-3" style="color:#1a1a2e;">Robustness to Image Corruptions (Severity 5)</h3>
+    <p class="mb-4" style="color:#555;">MAE demonstrates exceptional robustness to contrast perturbations,
+    maintaining 98.3% AUC where other methods degrade significantly.</p>
+    <div class="table-container">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Clean</th>
+            <th>Gaussian Noise</th>
+            <th>Blur</th>
+            <th>Contrast ⚡</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>JEPA</b></td>
+            <td>0.990</td>
+            <td>0.983</td>
+            <td>0.981</td>
+            <td>0.672</td>
+          </tr>
+          <tr>
+            <td><b>MAE</b></td>
+            <td>0.992</td>
+            <td>0.984</td>
+            <td>0.992</td>
+            <td class="best">0.983</td>
+          </tr>
+          <tr>
+            <td><b>Supervised</b></td>
+            <td class="best">0.996</td>
+            <td class="best">0.992</td>
+            <td class="best">0.994</td>
+            <td>0.758</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Cross-Dataset ──────────────────────────────────────── -->
+    <h3 class="title is-4 mt-6 mb-3" style="color:#1a1a2e;">Cross-Dataset Generalisation</h3>
+    <p class="mb-4" style="color:#555;">MAE demonstrates superior transfer to OOD hospital datasets, suggesting
+    reconstruction-based pretraining learns more generalizable features.</p>
+    <div class="table-container">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>ID (AUC)</th>
+            <th>Montgomery (AUC)</th>
+            <th>Shenzhen (AUC)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>JEPA</b></td>
+            <td>0.992</td>
+            <td>0.554</td>
+            <td>0.430</td>
+          </tr>
+          <tr>
+            <td><b>MAE</b></td>
+            <td>0.995</td>
+            <td class="best">0.607</td>
+            <td class="best">0.695</td>
+          </tr>
+          <tr>
+            <td><b>Supervised</b></td>
+            <td class="best">0.996</td>
+            <td>0.471</td>
+            <td>0.592</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<hr class="custom-sep">
+
+<!-- ═══════════════════════════════════════════════════════════
+     FIGURES
+═══════════════════════════════════════════════════════════════ -->
+<section class="section" style="background:#f9fbff;" id="visualizations">
+  <div class="container is-max-desktop">
+    <h2 class="section-title">Visualizations</h2>
+
+    <!-- Energy Distributions -->
+    <div class="columns is-centered mb-6">
+      <div class="column is-10">
+        <figure class="image">
+          <img src="Mini_project/paper_paragraph2_required_images/experiments/cxr_jepa_pilot/ood_detection/energy_distribution.png"
+               alt="Energy score distributions" class="gallery-img">
+        </figure>
+        <p class="figure-caption">
+          <b>Figure 1:</b> Energy score distributions for in-distribution and out-of-distribution samples
+          across all pretraining methods. Self-supervised methods (JEPA, MAE) show better separation between
+          distributions, enabling more reliable detection.
+        </p>
+      </div>
+    </div>
+
+    <!-- Robustness Plot -->
+    <div class="columns is-centered mb-6">
+      <div class="column is-10">
+        <figure class="image">
+          <img src="Mini_project/paper_paragraph2_required_images/experiments/cxr_jepa_pilot/robustness_ablation/robustness_plot.png"
+               alt="Robustness plot" class="gallery-img">
+        </figure>
+        <p class="figure-caption">
+          <b>Figure 2:</b> Classification AUC vs. corruption severity for all corruption types.
+          MAE maintains stable performance across all severity levels, while JEPA and Supervised methods
+          show progressive degradation under contrast perturbations.
+        </p>
+      </div>
+    </div>
+
+    <!-- Calibration -->
+    <div class="columns is-centered mb-6">
+      <div class="column is-8">
+        <figure class="image">
+          <img src="Mini_project/paper_paragraph2_required_images/experiments/cxr_jepa_pilot/calibration/reliability_diagram.png"
+               alt="Reliability diagram" class="gallery-img">
+        </figure>
+        <p class="figure-caption">
+          <b>Figure 3:</b> Reliability diagram showing calibration of probability estimates.
+          Perfect calibration would follow the diagonal. Supervised learning shows the best
+          calibration on in-distribution data.
+        </p>
+      </div>
+    </div>
+
+    <!-- Embedding Visualization 2D -->
+    <div class="columns is-centered mb-6">
+      <div class="column is-10">
+        <figure class="image">
+          <img src="Mini_project/paper_paragraph2_required_images/experiments/cxr_jepa_pilot/embedding_analysis/embedding_visualization.png"
+               alt="Embedding visualization" class="gallery-img">
+        </figure>
+        <p class="figure-caption">
+          <b>Figure 4:</b> Detailed embedding visualization showing the distribution of samples from
+          in-distribution and out-of-distribution datasets across the learned representation spaces.
+        </p>
+      </div>
+    </div>
+
+    <!-- 3D Embeddings -->
+    <h3 class="title is-4 mt-5 mb-4" style="color:#1a1a2e;">Figure 5: 3D Embedding Space Visualizations</h3>
+    <p class="mb-4" style="color:#555;">t-SNE visualizations colored by dataset source and disease label
+    reveal qualitatively different geometric organizations across pretraining methods.</p>
+    <div class="columns is-multiline">
+      <div class="column is-one-third">
+        <figure class="image">
+          <img src="Mini_project/paper_paragraph2_required_images/experiments/cxr_jepa_pilot/3d_visualization/embedding_3d_jepa.png"
+               alt="JEPA 3D embedding" class="gallery-img">
+        </figure>
+        <p class="figure-caption mt-2"><b>(a) JEPA</b><br>
+          Intermediate structure with moderate class separation; OOD samples not distinctly clustered.</p>
+      </div>
+      <div class="column is-one-third">
+        <figure class="image">
+          <img src="Mini_project/paper_paragraph2_required_images/experiments/cxr_jepa_pilot/3d_visualization/embedding_3d_mae.png"
+               alt="MAE 3D embedding" class="gallery-img">
+        </figure>
+        <p class="figure-caption mt-2"><b>(b) MAE</b><br>
+          OOD samples occupy systematically different regions, enabling effective Mahalanobis detection.</p>
+      </div>
+      <div class="column is-one-third">
+        <figure class="image">
+          <img src="Mini_project/paper_paragraph2_required_images/experiments/cxr_jepa_pilot/3d_visualization/embedding_3d_supervised.png"
+               alt="Supervised 3D embedding" class="gallery-img">
+        </figure>
+        <p class="figure-caption mt-2"><b>(c) Supervised</b><br>
+          Compact ID clusters but OOD samples mixed in, explaining poor energy-based detection.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="custom-sep">
+
+<!-- ═══════════════════════════════════════════════════════════
+     METHOD OVERVIEW
+═══════════════════════════════════════════════════════════════ -->
+<section class="section" id="method">
+  <div class="container is-max-desktop">
+    <h2 class="section-title">Method Overview</h2>
+    <div class="columns is-multiline">
+
+      <!-- JEPA -->
+      <div class="column is-one-third">
+        <div class="box" style="height:100%; border-top: 4px solid #e53935;">
+          <h3 class="title is-5" style="color:#e53935;">JEPA</h3>
+          <p style="font-size:0.92rem; color:#444; line-height:1.7;">
+            <b>Joint Embedding Predictive Architecture</b> predicts latent representations of masked
+            image regions from context patches. It uses a momentum-updated target encoder (EMA) and a
+            lightweight predictor transformer to learn high-level semantic features without pixel
+            reconstruction. Training objective: L₂ distance between predicted and actual target embeddings.
+          </p>
+          <div class="mt-3">
+            <span style="background:#fce4ec; color:#c62828; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">85–100% context masking</span>
+            <span style="background:#fce4ec; color:#c62828; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem; margin-left:0.3rem;">4 target blocks</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAE -->
+      <div class="column is-one-third">
+        <div class="box" style="height:100%; border-top: 4px solid #1e88e5;">
+          <h3 class="title is-5" style="color:#1e88e5;">MAE</h3>
+          <p style="font-size:0.92rem; color:#444; line-height:1.7;">
+            <b>Masked Autoencoder</b> uses an asymmetric encoder-decoder architecture. The encoder
+            processes only 25% of visible patches; a lightweight decoder reconstructs masked pixel values.
+            Training objective: MSE on normalized pixel values within masked patches, implicitly learning
+            full image intensity distributions.
+          </p>
+          <div class="mt-3">
+            <span style="background:#e3f2fd; color:#1565c0; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">75% masking ratio</span>
+            <span style="background:#e3f2fd; color:#1565c0; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem; margin-left:0.3rem;">4-block decoder</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Supervised -->
+      <div class="column is-one-third">
+        <div class="box" style="height:100%; border-top: 4px solid #43a047;">
+          <h3 class="title is-5" style="color:#43a047;">Supervised</h3>
+          <p style="font-size:0.92rem; color:#444; line-height:1.7;">
+            <b>Supervised Pretraining</b> trains the ViT-S encoder end-to-end with a linear
+            classification head using cross-entropy loss. This directly optimises for the binary
+            normal/tuberculosis classification task, achieving the highest in-distribution accuracy
+            but with limited OOD generalisation.
+          </p>
+          <div class="mt-3">
+            <span style="background:#e8f5e9; color:#2e7d32; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">Binary CE loss</span>
+            <span style="background:#e8f5e9; color:#2e7d32; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem; margin-left:0.3rem;">Linear head</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Common backbone -->
+      <div class="column is-full">
+        <div class="box" style="background:#f0f4ff; border: 2px solid #3273dc;">
+          <h3 class="title is-5 mb-2" style="color:#3273dc;">Shared Backbone: ViT-Small (21.6M params)</h3>
+          <div class="columns">
+            <div class="column">
+              <p style="font-size:0.92rem; color:#444;">
+                All experiments use an identical <b>Vision Transformer Small</b> architecture for fair comparison:
+                12 transformer blocks · 384-dim embeddings · 6 attention heads · 1536 MLP dim.
+                Input: 224×224 images → 196 × 16×16 patch tokens + CLS token.
+              </p>
+            </div>
+            <div class="column is-narrow" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+              <div style="text-align:center;">
+                <div style="font-size:1.5rem; font-weight:700; color:#3273dc;">50</div>
+                <div style="font-size:0.75rem; color:#888;">pretraining epochs</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:1.5rem; font-weight:700; color:#3273dc;">3,360</div>
+                <div style="font-size:0.75rem; color:#888;">training samples</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:1.5rem; font-weight:700; color:#3273dc;">ViT-S</div>
+                <div style="font-size:0.75rem; color:#888;">backbone</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="custom-sep">
+
+<!-- ═══════════════════════════════════════════════════════════
+     DATASETS
+═══════════════════════════════════════════════════════════════ -->
+<section class="section" style="background:#f9fbff;" id="datasets">
+  <div class="container is-max-desktop">
+    <h2 class="section-title">Datasets</h2>
+    <div class="columns">
+
+      <!-- In-Distribution -->
+      <div class="column">
+        <div class="box" style="border-top: 4px solid #3273dc;">
+          <p class="tag is-info mb-2">In-Distribution</p>
+          <h3 class="title is-5">TB Chest Radiography Database</h3>
+          <p style="font-size:0.92rem; color:#555; line-height:1.7;">
+            4,200 chest X-ray images with binary labels (Normal vs. Tuberculosis).
+            Class-imbalanced: 700 normal + 3,500 TB images, reflecting clinical screening prevalence.
+          </p>
+          <div class="mt-3" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span style="background:#e3f2fd; color:#1565c0; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">4,200 images</span>
+            <span style="background:#e3f2fd; color:#1565c0; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">Binary labels</span>
+            <span style="background:#e3f2fd; color:#1565c0; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">80/20 split</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- OOD 1 -->
+      <div class="column">
+        <div class="box" style="border-top: 4px solid #e53935;">
+          <p class="tag is-danger mb-2">Out-of-Distribution</p>
+          <h3 class="title is-5">Montgomery County TB Dataset</h3>
+          <p style="font-size:0.92rem; color:#555; line-height:1.7;">
+            138 chest X-rays from Montgomery County, Maryland, USA.
+            Acquired on a Eureka stationary X-ray machine — different equipment and geographic origin.
+          </p>
+          <div class="mt-3" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span style="background:#fce4ec; color:#c62828; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">138 images</span>
+            <span style="background:#fce4ec; color:#c62828; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">USA (Maryland)</span>
+            <span style="background:#fce4ec; color:#c62828; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">Eureka X-ray</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- OOD 2 -->
+      <div class="column">
+        <div class="box" style="border-top: 4px solid #e53935;">
+          <p class="tag is-danger mb-2">Out-of-Distribution</p>
+          <h3 class="title is-5">Shenzhen Hospital TB Dataset</h3>
+          <p style="font-size:0.92rem; color:#555; line-height:1.7;">
+            662 chest X-rays from Shenzhen No.3 People's Hospital, China.
+            Acquired on a Philips DR Digital Diagnost system — different country, demographics, and equipment.
+          </p>
+          <div class="mt-3" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span style="background:#fce4ec; color:#c62828; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">662 images</span>
+            <span style="background:#fce4ec; color:#c62828; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">China (Shenzhen)</span>
+            <span style="background:#fce4ec; color:#c62828; border-radius:12px; padding:0.2rem 0.7rem; font-size:0.8rem;">Philips DR</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="custom-sep">
+
+<!-- ═══════════════════════════════════════════════════════════
+     CONCLUSION & FUTURE WORK
+═══════════════════════════════════════════════════════════════ -->
+<section class="section" id="conclusion">
+  <div class="container is-max-desktop">
+    <h2 class="section-title">Conclusion</h2>
+    <div class="content">
+      <p style="font-size:1rem; line-height:1.8; color:#333;">
+        This work presents a systematic comparison of self-supervised learning methods for chest X-ray
+        out-of-distribution detection. Our comprehensive evaluation yields several findings with direct
+        practical implications:
+      </p>
+      <ul style="font-size:1rem; line-height:2; color:#333;">
+        <li><b>Self-supervised pretraining</b> provides 15–25 percentage-point advantages over supervised
+            learning for energy-based OOD detection, capturing distributional characteristics beyond
+            discriminative boundaries.</li>
+        <li><b>Mahalanobis distance</b> achieves excellent performance (≥95% AUROC) regardless of pretraining,
+            suggesting that detection methodology may be as important as representation choice.</li>
+        <li><b>MAE is the recommended default</b> for medical imaging deployment under distribution shift,
+            offering superior robustness (especially contrast), better cross-dataset transfer, and consistent
+            performance across both energy and Mahalanobis scoring.</li>
+      </ul>
+      <p style="font-size:1rem; line-height:1.8; color:#333; margin-top:1rem;">
+        <b>Future work</b> extends this framework to echocardiogram segmentation using EchoNet-Dynamic
+        (in-distribution) and EchoNet-Pediatric (OOD), testing whether these patterns generalise to
+        video-based medical imaging and dense prediction tasks.
+      </p>
+    </div>
+  </div>
+</section>
+
+<hr class="custom-sep">
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAPER PDF
+═══════════════════════════════════════════════════════════════ -->
+<section class="section" style="background:#f9fbff;" id="paper">
+  <div class="container is-max-desktop">
+    <h2 class="section-title">Paper</h2>
+    <div style="border-radius:12px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.13); border:1px solid #ddd;">
+      <!-- PDF viewer chrome bar -->
+      <div style="background:#3c4043; display:flex; align-items:center; padding:0.5rem 1rem; gap:0.75rem;">
+        <div style="display:flex; gap:5px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#ff5f57;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#febc2e;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#28c840;"></div>
+        </div>
+        <span style="color:#ccc; font-size:0.85rem; flex:1; text-align:center;">paper.pdf</span>
+      </div>
+      <iframe src="Med_JEPA_OOD.pdf"
+              style="width:100%; height:700px; border:none;">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="container">
+    <p>
+      Website template adapted from
+      <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>
+      by Eliahuhorwitz.
+    </p>
+    <p class="mt-1">
+      Code available at
+      <a href="https://github.com/Nikhil-Rao20/JEPA-Med-OOD" target="_blank">github.com/Nikhil-Rao20/JEPA-Med-OOD</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

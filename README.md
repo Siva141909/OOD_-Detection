@@ -302,20 +302,3 @@ Download and place under `Datasets/`:
 5. **Supervised models require Mahalanobis scoring.** Their confidence estimates are unreliable for OOD data, but their embedding structure still supports excellent Mahalanobis-based detection.
 
 ---
-
-## Citation
-
-If you use this work, please cite the foundational I-JEPA paper:
-
-```bibtex
-@article{assran2023self,
-  title={Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture},
-  author={Assran, Mahmoud and Duval, Quentin and Misra, Ishan and Bojanowski, Piotr and Vincent, Pascal and Rabbat, Michael and LeCun, Yann and Ballas, Nicolas},
-  journal={arXiv preprint arXiv:2301.08243},
-  year={2023}
-}
-```
-
----
-
-*Research conducted as part of a comparative study on self-supervised learning for medical imaging OOD detection (March 2026).*
