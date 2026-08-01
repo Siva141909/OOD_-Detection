@@ -124,20 +124,20 @@ class LinearProbe(nn.Module):
         self.encoder.eval()
     
     def forward(self, x):
-        # Get CLS token embedding from frozen encoder
+        # This backbone has no CLS token (cls_token=False in IJEPA's ViT);
+        # mean-pool over patch tokens for a global representation.
         with torch.no_grad():
             features = self.encoder(x)  # [B, N, D]
-            # Use CLS token (first token)
-            cls_embedding = features[:, 0]  # [B, D]
-        
-        logits = self.head(cls_embedding)
+            pooled = features.mean(dim=1)  # [B, D]
+
+        logits = self.head(pooled)
         return logits
-    
+
     def get_embeddings(self, x):
         """Extract embeddings without classification."""
         with torch.no_grad():
             features = self.encoder(x)
-            return features[:, 0]
+            return features.mean(dim=1)
 
 
 # ============================================================================
