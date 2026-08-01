@@ -10,7 +10,7 @@ data:
   - 1.0
   crop_size: 224
   # Path to CXR datasets directory
-  root_path: c:/Users/nikhi/Downloads/Med_JEPA_ODD/Datasets/CXR
+  root_path: Datasets/CXR
   num_workers: 4
   pin_mem: true
   # Medical-specific: disable augmentations that could distort pathology
@@ -24,7 +24,7 @@ data:
   - tb_database  # 8,400 images (TB/Normal)
 
 logging:
-  folder: c:/Users/nikhi/Downloads/Med_JEPA_ODD/experiments/cxr_jepa_pilot/
+  folder: experiments/cxr_jepa_pilot/
   write_tag: jepa_cxr_vit_small
 
 mask:

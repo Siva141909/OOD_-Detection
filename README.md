@@ -232,19 +232,29 @@ OOD_Detection/
 
 ### Requirements
 
+Install dependencies from the included `requirements.txt` (Python 3.8+):
+
+```bash
+pip install -r requirements.txt
 ```
-Python 3.8+
-PyTorch 2.0
+
+```
+torch>=2.0
 torchvision
 pyyaml
 numpy
 opencv-python
+scikit-learn
+matplotlib
+pandas
 submitit
 ```
 
+> **Hardware note:** All pretraining scripts default to CUDA when available and fall back to CPU otherwise. There is no dedicated NVIDIA GPU requirement enforced by the code, but ViT-Small pretraining (50 epochs) is impractical on CPU-only or integrated-graphics machines (e.g. Intel Iris Xe) — expect it to be 20-50x slower than on a CUDA GPU. See the "Running on a laptop / no discrete GPU" note below.
+
 ### Running Experiments
 
-All scripts should be run from the project root (`OOD_Detection/`):
+All scripts must be run from the project root (`OOD_Detection/`), and expect a `Datasets/CXR/` folder containing `TB_Chest_Radiography_Database/`, `Montgomery/`, and `Shenzhen/` subfolders (see [Datasets](#datasets) below).
 
 ```bash
 # 1. JEPA Pretraining
@@ -261,28 +271,62 @@ python cxr_ood/pretraining/supervised_pretrain.py \
   --data-root Datasets/CXR/TB_Chest_Radiography_Database \
   --output-dir experiments/cxr_jepa_pilot/baseline_comparison/supervised_pretrain
 
-# 4. Linear Probe Evaluation
+# 4. Linear Probe Evaluation (requires --data-path, not just --checkpoint)
 python cxr_ood/evaluation/linear_probe.py \
-  --checkpoint experiments/cxr_jepa_pilot/checkpoint_ep50.pth
+  --checkpoint experiments/cxr_jepa_pilot/checkpoint_ep50.pth \
+  --data-path Datasets/CXR/TB_Chest_Radiography_Database \
+  --output-dir experiments/cxr_jepa_pilot/linear_probe
 
-# 5. OOD Detection
+# 5. OOD Detection (requires jepa+probe checkpoints, data-root, split-file, output-dir)
 python cxr_ood/evaluation/ood_detection.py \
-  --checkpoint experiments/cxr_jepa_pilot/checkpoint_ep50.pth
+  --jepa-checkpoint experiments/cxr_jepa_pilot/checkpoint_ep50.pth \
+  --probe-checkpoint experiments/cxr_jepa_pilot/linear_probe/best_probe.pth \
+  --data-root Datasets/CXR \
+  --split-file experiments/cxr_jepa_pilot/linear_probe/dataset_split.json \
+  --output-dir experiments/cxr_jepa_pilot/ood_detection
 
-# 6. Baseline Comparison
-python cxr_ood/analysis/baseline_comparison.py
+# 6. Baseline Comparison (jepa-checkpoint + data-root + output-dir are required)
+python cxr_ood/analysis/baseline_comparison.py \
+  --jepa-checkpoint experiments/cxr_jepa_pilot/checkpoint_ep50.pth \
+  --mae-checkpoint experiments/cxr_jepa_pilot/baseline_comparison/mae_pretrain/encoder_final.pth \
+  --supervised-checkpoint experiments/cxr_jepa_pilot/baseline_comparison/supervised_pretrain/best_model.pth \
+  --data-root Datasets/CXR \
+  --output-dir experiments/cxr_jepa_pilot/baseline_comparison
 
-# 7. Robustness Testing
-python cxr_ood/analysis/robustness_ablation.py
+# 7. Robustness Testing (all three checkpoints + data-root + output-dir are required)
+python cxr_ood/analysis/robustness_ablation.py \
+  --jepa-checkpoint experiments/cxr_jepa_pilot/checkpoint_ep50.pth \
+  --mae-checkpoint experiments/cxr_jepa_pilot/baseline_comparison/mae_pretrain/encoder_final.pth \
+  --supervised-checkpoint experiments/cxr_jepa_pilot/baseline_comparison/supervised_pretrain/best_model.pth \
+  --data-root Datasets/CXR \
+  --output-dir experiments/cxr_jepa_pilot/robustness
 
 # 8. 3D Embedding Visualization
 python cxr_ood/analysis/embedding_3d_visualization.py \
   --jepa-checkpoint experiments/cxr_jepa_pilot/checkpoint_ep50.pth \
-  --mae-checkpoint experiments/cxr_jepa_pilot/baseline_comparison/mae_pretrain_v2/encoder_final.pth \
+  --mae-checkpoint experiments/cxr_jepa_pilot/baseline_comparison/mae_pretrain/encoder_final.pth \
   --supervised-checkpoint experiments/cxr_jepa_pilot/baseline_comparison/supervised_pretrain/best_model.pth \
   --data-root Datasets/CXR \
   --output-dir experiments/cxr_jepa_pilot/3d_visualization
 ```
+
+Notes on the fixes above vs. the previous version of this README:
+- `cxr_ood/configs/cxr_vit_small.yaml` previously hardcoded a Windows path (`c:/Users/nikhi/Downloads/...`) for `data.root_path` and `logging.folder`. It now uses relative paths (`Datasets/CXR`, `experiments/cxr_jepa_pilot/`), resolved relative to wherever you run the command from — run it from the project root.
+- `linear_probe.py` requires `--data-path` (it does not read it from the checkpoint); the old command omitted it and would fail with `error: the following arguments are required: --data-path`.
+- `ood_detection.py` takes `--jepa-checkpoint`, `--probe-checkpoint`, `--data-root`, `--split-file`, `--output-dir` — the old command's `--checkpoint` flag does not exist on this script.
+- `baseline_comparison.py` and `robustness_ablation.py` both require checkpoint/data-root/output-dir arguments; the old commands passed none and would fail immediately with `argparse` "required" errors.
+
+### Running on a laptop / no discrete GPU
+
+All training scripts (`jepa_pretrain.py`, `mae_pretrain.py`, `supervised_pretrain.py`) call `torch.cuda.is_available()` and automatically fall back to CPU — nothing crashes on a machine without an NVIDIA GPU. However:
+
+- **Intel Iris Xe (integrated graphics) is not usable by PyTorch here.** PyTorch's CUDA backend only targets NVIDIA GPUs; Iris Xe has no CUDA driver, so training silently runs on CPU regardless of the "graphics card" line in Task Manager.
+- **A 13th Gen i5-1335U + 16 GB RAM machine (e.g. `LAPTOP-V5OBE5FT`, Windows 11) can run this code correctly, but CPU-only ViT-Small pretraining is slow.** As a rough estimate, 50 epochs over ~4,200 images that takes ~15-30 minutes on a mid-range CUDA GPU would likely take several hours to a day+ on this CPU alone (highly dependent on batch size, worker count, and thermal throttling on a thin laptop chassis).
+- RAM is not the bottleneck (16 GB is comfortable for batch sizes 32-64 at 224×224 with ViT-Small, ~22M params); compute is.
+- Practical options on this hardware:
+  1. Reduce `epochs`, `batch_size` (e.g. `--batch-size 8-16`), and use `--max_images` (JEPA) / a data subset to sanity-check the pipeline end-to-end quickly.
+  2. Run full-scale training on a cloud GPU instead (Google Colab free/paid tier, Kaggle Notebooks with a free T4 GPU, Lightning AI, or a paid instance on AWS/GCP/Lambda/RunPod) and only use the laptop for development, debugging, and running the lightweight evaluation/analysis scripts against already-trained checkpoints.
+  3. Evaluation-only scripts (`linear_probe.py` with `--load-model`, `ood_detection.py`, `baseline_comparison.py`, `robustness_ablation.py`, `embedding_3d_visualization.py`) are much cheaper — a frozen encoder forward pass over a few thousand images — and are reasonable to run on this CPU once checkpoints exist.
 
 ### Datasets
 
