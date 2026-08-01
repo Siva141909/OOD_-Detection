@@ -172,8 +172,8 @@ def create_supervised_baseline(args):
 
 def main():
     parser = argparse.ArgumentParser(description='Create Supervised Baseline')
-    parser.add_argument('--output_dir', type=str, 
-                        default='c:/Users/nikhi/Downloads/Med_JEPA_ODD/experiments/echo_seg_pilot/supervised')
+    parser.add_argument('--output_dir', type=str,
+                        default='experiments/echo_seg_pilot/supervised')
     
     args = parser.parse_args()
     create_supervised_baseline(args)

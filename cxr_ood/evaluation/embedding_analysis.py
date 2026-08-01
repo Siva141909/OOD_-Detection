@@ -289,9 +289,11 @@ def compute_ood_metrics(id_scores: np.ndarray, ood_scores: np.ndarray) -> dict:
     scores = np.concatenate([id_scores, ood_scores])
     
     auroc = roc_auc_score(labels, scores)
-    
+
     fpr, tpr, thresholds = roc_curve(labels, scores)
-    idx = np.argmin(np.abs(tpr - 0.95))
+    # First index where TPR >= 95% (not nearest-to-0.95, which can
+    # undershoot the 95% guarantee on small sample sizes).
+    idx = np.argmax(tpr >= 0.95)
     fpr_at_95_tpr = fpr[idx]
     
     return {

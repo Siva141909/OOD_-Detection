@@ -419,8 +419,9 @@ def main():
                 # Forward pass with gradient accumulation
                 try:
                     # Sync before forward pass
-                    torch.cuda.synchronize()
-                    
+                    if torch.cuda.is_available():
+                        torch.cuda.synchronize()
+
                     # Get target representations (no gradient)
                     with torch.no_grad():
                         h = target_encoder(imgs)
@@ -433,12 +434,15 @@ def main():
                     z = predictor(z, masks_enc, masks_pred)
                     loss = F.mse_loss(z, h) / grad_accum_steps
                     loss.backward()
-                    
+
                     # Sync after backward
-                    torch.cuda.synchronize()
-                    
+                    if torch.cuda.is_available():
+                        torch.cuda.synchronize()
+
                     # Step optimizer every grad_accum_steps
                     if (itr + 1) % grad_accum_steps == 0:
+                        torch.nn.utils.clip_grad_norm_(
+                            list(encoder.parameters()) + list(predictor.parameters()), max_norm=1.0)
                         optimizer.step()
                         optimizer.zero_grad()
                         

@@ -26,9 +26,12 @@ sys.path.insert(0, IJEPA_PATH)
 from src.masks.multiblock import MaskCollator as MBMaskCollator
 from src.masks.utils import apply_masks
 from src.utils.tensors import repeat_interleave_batch
-from src.datasets.cxr_dataset import CXRDataset, get_cxr_dataset_stats
 from src.helper import init_model
 from src.transforms import make_transforms
+
+# Add cxr_ood root to path for the actual dataset module
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.cxr_dataset import CXRDataset, get_cxr_dataset_stats
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -423,7 +426,7 @@ def main():
     parser = argparse.ArgumentParser(description='JEPA Sanity Check')
     parser.add_argument(
         '--root_path', type=str,
-        default='c:/Users/nikhi/Downloads/Med_JEPA_ODD/Datasets/CXR',
+        default='Datasets/CXR',
         help='Path to CXR datasets'
     )
     parser.add_argument(
@@ -468,7 +471,7 @@ def main():
     if all_passed:
         print("\n[PASS] ALL CHECKS PASSED!")
         print("\nYou can now run full training with:")
-        print("  python train_single_gpu.py --config configs/cxr_vit_small.yaml")
+        print("  python cxr_ood/pretraining/jepa_pretrain.py --config cxr_ood/configs/cxr_vit_small.yaml")
     else:
         print("\n[FAIL] SOME CHECKS FAILED - Fix issues before training")
     

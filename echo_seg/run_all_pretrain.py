@@ -14,6 +14,7 @@ from datetime import datetime
 # Paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PRETRAINING_DIR = os.path.join(SCRIPT_DIR, "pretraining")
+DEFAULT_JEPA_CONFIG = os.path.join(SCRIPT_DIR, "configs", "echo_vit_small.yaml")
 
 
 def run_experiment(script_name, args_list=None):
@@ -58,11 +59,11 @@ def main():
     
     results = {}
     
-    # 1. JEPA
+    # 1. JEPA (config-driven; epochs/batch_size come from the YAML config,
+    # not CLI flags -- jepa_pretrain.py only accepts --config/--device/--resume/--max_images)
     if not args.skip_jepa:
         results['jepa'] = run_experiment('jepa_pretrain.py', [
-            '--epochs', str(args.epochs),
-            '--batch_size', str(args.batch_size)
+            '--config', DEFAULT_JEPA_CONFIG
         ])
     
     # 2. MAE

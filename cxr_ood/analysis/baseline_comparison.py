@@ -157,9 +157,7 @@ class SupervisedEncoder(nn.Module):
     """
     def __init__(self, checkpoint_path=None, device='cuda'):
         super().__init__()
-        from models.vision_transformer import vit_small as local_vit_small
-        
-        self.encoder = local_vit_small()
+        self.encoder = vit_small()
         self.embed_dim = self.encoder.embed_dim  # 384, same as JEPA
         
         # Load pretrained supervised checkpoint

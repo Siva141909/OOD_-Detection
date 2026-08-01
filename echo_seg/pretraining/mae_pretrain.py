@@ -484,17 +484,19 @@ def train_mae(args):
             for batch_idx, imgs in enumerate(dataloader):
                 try:
                     # Sync before forward
-                    torch.cuda.synchronize()
-                    
+                    if torch.cuda.is_available():
+                        torch.cuda.synchronize()
+
                     imgs = imgs.to(device)
                     
                     loss, _, _ = model(imgs, args.mask_ratio)
                     loss = loss / grad_accum_steps
                     loss.backward()
-                    
+
                     # Sync after backward
-                    torch.cuda.synchronize()
-                    
+                    if torch.cuda.is_available():
+                        torch.cuda.synchronize()
+
                     # Step optimizer every grad_accum_steps
                     if (batch_idx + 1) % grad_accum_steps == 0:
                         torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
@@ -583,8 +585,8 @@ def main():
     parser = argparse.ArgumentParser(description='MAE Pretraining on Echo')
     
     # Data
-    parser.add_argument('--data_root', type=str, 
-                        default='c:/Users/nikhi/Downloads/Med_JEPA_ODD/Datasets/Echo/EchoNet_Dynamic')
+    parser.add_argument('--data_root', type=str,
+                        default='Datasets/Echo/EchoNet_Dynamic')
     parser.add_argument('--img_size', type=int, default=224)
     parser.add_argument('--patch_size', type=int, default=16)
     parser.add_argument('--batch_size', type=int, default=4)  # Further reduced to 4
@@ -606,8 +608,8 @@ def main():
     parser.add_argument('--seed', type=int, default=42)
     
     # Output
-    parser.add_argument('--output_dir', type=str, 
-                        default='c:/Users/nikhi/Downloads/Med_JEPA_ODD/experiments/echo_seg_pilot/mae')
+    parser.add_argument('--output_dir', type=str,
+                        default='experiments/echo_seg_pilot/mae')
     
     args = parser.parse_args()
     train_mae(args)

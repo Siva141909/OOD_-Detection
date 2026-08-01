@@ -10,7 +10,7 @@ data:
   - 1.0
   crop_size: 224
   # Path to EchoNet-Dynamic
-  root_path: c:/Users/nikhi/Downloads/Med_JEPA_ODD/Datasets/Echo/EchoNet_Dynamic
+  root_path: Datasets/Echo/EchoNet_Dynamic
   num_workers: 0  # Use 0 on Windows to avoid multiprocessing issues
   pin_mem: false  # Disable to reduce memory pressure
   gradient_accumulation_steps: 8  # Effective batch size = 4 * 8 = 32
@@ -20,7 +20,7 @@ data:
   use_horizontal_flip: false  # Echo anatomy should not be flipped
 
 logging:
-  folder: c:/Users/nikhi/Downloads/Med_JEPA_ODD/experiments/echo_seg_pilot/jepa/
+  folder: experiments/echo_seg_pilot/jepa/
   write_tag: jepa_echo_vit_small
 
 mask:

@@ -257,7 +257,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     
     # Update this path to your dataset location
-    root = r"c:\Users\nikhi\Downloads\Med_JEPA_ODD\Datasets\CXR"
+    root = "Datasets/CXR"
     
     # Test dataset creation
     transform = transforms.Compose([

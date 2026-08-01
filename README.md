@@ -254,7 +254,7 @@ submitit
 
 ### Running Experiments
 
-All scripts must be run from the project root (`OOD_Detection/`), and expect a `Datasets/CXR/` folder containing `TB_Chest_Radiography_Database/`, `Montgomery/`, and `Shenzhen/` subfolders (see [Datasets](#datasets) below).
+All scripts must be run from the project root (`OOD_Detection/`), and expect a `Datasets/CXR/` folder with the exact structure described in [Required dataset folder structure](#required-dataset-folder-structure) below.
 
 ```bash
 # 1. JEPA Pretraining
@@ -315,6 +315,31 @@ Notes on the fixes above vs. the previous version of this README:
 - `linear_probe.py` requires `--data-path` (it does not read it from the checkpoint); the old command omitted it and would fail with `error: the following arguments are required: --data-path`.
 - `ood_detection.py` takes `--jepa-checkpoint`, `--probe-checkpoint`, `--data-root`, `--split-file`, `--output-dir` — the old command's `--checkpoint` flag does not exist on this script.
 - `baseline_comparison.py` and `robustness_ablation.py` both require checkpoint/data-root/output-dir arguments; the old commands passed none and would fail immediately with `argparse` "required" errors.
+
+### Required dataset folder structure
+
+The `Datasets/` folder is intentionally excluded from git (see `.gitignore`) since these medical imaging datasets are large. You need to create it yourself and download the data into it — the code expects this **exact** structure (folder names are hardcoded in the dataset loader classes, e.g. `cxr_ood/utils/cxr_dataset.py`, `cxr_ood/evaluation/ood_detection.py`, `cxr_ood/analysis/baseline_comparison.py`):
+
+```
+OOD_Detection/                          <- project root, run all commands from here
+└── Datasets/
+    └── CXR/
+        ├── TB_Chest_Radiography_Database/
+        │   ├── Normal/                 <- *.png/.jpg images, label = 0
+        │   └── Tuberculosis/           <- *.png/.jpg images, label = 1
+        ├── Montgomery TB CXR/          <- exact name, including the space
+        │   ├── images/                 <- *.png images
+        │   └── montgomery_metadata.csv <- only needed by embedding_analysis.py (columns: study_id, findings)
+        └── Shenzhen TB CXR/            <- exact name, including the space
+            ├── images/
+            │   └── images/             <- yes, nested twice - matches the Kaggle zip layout
+            └── shenzhen_metadata.csv   <- only needed by embedding_analysis.py (columns: study_id, findings)
+```
+
+Notes:
+- `Montgomery TB CXR` and `Shenzhen TB CXR` must match exactly (including the space and capitalization) — a folder named `Montgomery/` or `Shenzhen/` will not be found and those scripts will silently report 0 samples instead of erroring.
+- The `montgomery_metadata.csv` / `shenzhen_metadata.csv` files are only required by `embedding_analysis.py` (for per-sample Normal/TB labels used in cross-dataset classification); every other script (`ood_detection.py`, `baseline_comparison.py`, `robustness_ablation.py`, `embedding_3d_visualization.py`) only needs the image folders since it treats Montgomery/Shenzhen as unlabeled OOD data.
+- JEPA pretraining (`cxr_ood/utils/cxr_dataset.py`) can optionally also use a `Kermany's CXR/` folder (with `train/`, `test/` splits and `NORMAL/`, `PNEUMONIA/` subfolders) if you add `kermany` to `datasets_to_use` in the config — the default `cxr_vit_small.yaml` only uses `tb_database`, so this is not required for the documented commands above.
 
 ### Running on a laptop / no discrete GPU
 
